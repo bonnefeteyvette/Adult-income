@@ -31,7 +31,6 @@ In this notebook, we focus on **data preparation**, **cleaning**, and **preproce
 Good data preprocessing is crucial for reliable and interpretable results in machine learning and analytics workflows. Here, we address common data issues such as **missing values, duplicates, and inconsistent categorical labels** while creating derived features to improve downstream analysis.
 
 
-
 We start by importing essential Python libraries for data handling and manipulation.
 
 - `pandas` for structured data operations.
@@ -40,11 +39,11 @@ We start by importing essential Python libraries for data handling and manipulat
 
 - `os` for interacting with the operating system and directory structures.
 
-
-
 ```{python}
-# Import libraries
-
+#| label: import-libraries
+#| echo: true
+#| output: false
+# Import libraries 
 import pandas as pd
 import numpy as np
 import os
@@ -52,7 +51,7 @@ import os
 
 ## Define and Create Directory Paths
 
-To ensure reproducibility a ndorganized storage, we programmatically create directories for:
+To ensure reproducibility andorganized storage, we programmatically create directories for:
 
 - **raw data**
 - **processed data**
@@ -61,28 +60,28 @@ To ensure reproducibility a ndorganized storage, we programmatically create dire
 
 These directories will store intermediate and final outputs for reproducibility.
 
-
 ```{python}
+#| label: create-directories
 #| echo: false
 #| output: false
-# Get working directory
+#Get working directory
 current_dir = os.getcwd()
-# Go one directory up to the root directory
+#go one directory up to root directory
 project_root_dir = os.path.dirname(current_dir)
-# define paths to the data files
+#Define path to data files
 data_dir = os.path.join(project_root_dir, 'data')
 raw_dir = os.path.join(data_dir, 'raw')
 processed_dir = os.path.join(data_dir, 'processed')
-# Define paths to the results folder
-results_dir  = os.path.join(project_root_dir, 'results')
-# Define paths to the docs folder
+#Define path to results folder
+results_dir = os.path.join(project_root_dir, 'results')
+#Define path to results folder
 docs_dir = os.path.join(project_root_dir, 'docs')
 
-# create directories if they do not exist 
-os.makedirs(raw_dir, exist_ok = True )
-os.makedirs(processed_dir, exist_ok = True )
-os.makedirs(results_dir, exist_ok = True)
-os.makedirs(docs_dir, exist_ok = True)
+#Create directories if they do not exist
+os.makedirs(raw_dir, exist_ok=True)
+os.makedirs(processed_dir, exist_ok=True)
+os.makedirs(results_dir, exist_ok=True)
+os.makedirs(docs_dir, exist_ok=True)
 ```
 
 ## Read in the data
@@ -96,60 +95,55 @@ Key considerations here are:
 
 After loading, we inspect the first few rows.
 
-::: {.panel-tabset}
-## Output {.active}
-```{python} 
-#| label: adult-income
-#| tbl-cap: Adult Income Dataset
-
-adult_data_filename = os.path.join(raw_dir, "adult.csv")
-adult_df = pd.read_csv(adult_data_filename, header= None, na_values= '?', skipinitialspace= True)
+```{python}
+#| label: load-raw-data
+#| echo: true
+#| warning: false
+#| message: false
+adult_data_filename = os.path.join(raw_dir,"adult.csv")
+adult_df = pd.read_csv(adult_data_filename,header=None, na_values="?",skipinitialspace=True)
 adult_df.head(10)
 ```
 
-## Code
+ We also inspect the dataset's shape. We see that the data has *32,561* rows and *15* columns
 
 ```{python}
-#| output: false
-adult_data_filename = os.path.join(raw_dir, "adult.csv")
-adult_df = pd.read_csv(adult_data_filename, header= None, na_values= '?', skipinitialspace= True)
-adult_df.head(10)
-```
-:::
-We also inspect the dataset shape. We see that the data has *32,561* rows and *15* columns.
-
-```{python}
+#| label: dataset-shape
 #| echo: false
-#| output: false
 adult_df.shape
 ```
 
 In addition, we check the data types using `.info`. 
 
 ```{python}
+#| label: dataset-info
 #| echo: false
-
+#| output: false
 adult_df.info()
 ```
-## Data cleaning
-  ** Assign proper column names to the columns**
+
+## Data Cleaning
+### 1. Assign proper column names to the columns
 
 One of the most stricking things from the above inspection is that the dataset lacks explicit column headers. We manually assign descriptive meaningful column names based on the description of the [dataset](https://archive.ics.uci.edu/dataset/2/adult). This is critical for readability and interpretability in the subsequent steps.
 
-
 ```{python}
-adult_df.columns = ["age", "workclass", "fnlwgt", "education", "education_num", "marital_status", "occupation", "relationship", "race", "sex", "capital_gain", "capital_loss", "hours_per_week", "native_country", "income"]
+#| label: assign-column-names
+#| echo: true
+adult_df.columns = ["age", "workclass", "fnlwgt", "education", "education_num", "marital_status", "occupation", 
+                    "relationship", "race", "sex", "capital_gain", "capital_loss", "hours_per_week", 
+                    "native_country", "income"]
 ```
 
-We inspect again to see whether they are properly assigned
+We inspect again to see whether they are properly assigned.
 
 ```{python}
+#| label: preview-with-headers
 #| echo: false
-#| output: false
 adult_df.head(10)
 ```
 
-## Understanding the dataset
+### 2. Understanding the dataset
 
 Before proceeding with the cleaning, we would like to understanding the variables deeply. This would help guide the cleaning process. The subsequent tables detail the types, meaning and values or ranges of the variables in the dataset.
 
@@ -173,91 +167,79 @@ Before proceeding with the cleaning, we would like to understanding the variable
 | native_country   | Categorical | Country of origin                     | 41 categories          |
 | income           | Categorical | Income category (target variable)     | 2 categories: <=50K, >50K |
 
-**Table 2: Categorical Variables Table
+### Table 2: Categorical Variables Table
 
-| Variable        | Unique Value           | Description                                                      |
-|----------------|------------------------|------------------------------------------------------------------|
-| **workclass**   | Private                | Works for a private, for-profit company                          |
-|                 | Self-emp-not-inc      | Self-employed without incorporated business status               |
-|                 | Self-emp-inc          | Self-employed with an incorporated business                      |
-|                 | Federal-gov           | Employed by the federal government                               |
-|                 | State-gov             | Employed by a state government                                   |
-|                 | Local-gov             | Employed by a local government                                   |
-|                 | Without-pay           | Works without receiving pay (e.g. unpaid family worker)          |
-|                 | Never-worked          | Has never worked in their lifetime                               |
-| **education**   | Bachelors             | Bachelor’s degree                                                |
-|                 | Some-college          | Some college courses completed, no degree                        |
-|                 | 11th                  | 11th grade completed                                             |
-|                 | HS-grad               | High school graduate                                             |
-|                 | Prof-school           | Professional school (e.g. law, medicine)                         |
-|                 | Assoc-acdm            | Associate degree (academic)                                      |
-|                 | Assoc-voc             | Associate degree (vocational)                                    |
-|                 | 9th                   | 9th grade completed                                              |
-|                 | 7th-8th               | 7th or 8th grade completed                                       |
-|                 | 12th                  | 12th grade, no diploma                                           |
-|                 | Masters               | Master’s degree                                                  |
-|                 | 1st-4th               | 1st to 4th grade completed                                       |
-|                 | 10th                  | 10th grade completed                                             |
-|                 | Doctorate             | Doctoral degree                                                  |
-|                 | 5th-6th               | 5th or 6th grade completed                                       |
-|                 | Preschool             | Preschool education                                              |
-| **marital-status** | Married-civ-spouse | Married, living with spouse                                      |
-|                 | Divorced              | Divorced legally                                                 |
-|                 | Never-married         | Never married                                                    |
-|                 | Separated             | Separated legally but not divorced                               |
-|                 | Widowed               | Spouse deceased                                                  |
-|                 | Married-spouse-absent | Married, spouse not present (e.g. estrangement)                  |
-|                 | Married-AF-spouse     | Married to a spouse in the Armed Forces                          |
-| **occupation**  | Tech-support          | Technical support jobs                                           |
-|                 | Craft-repair          | Skilled manual trade and repair jobs                             |
-|                 | Other-service         | Services not classified elsewhere                                |
-|                 | Sales                 | Sales-related jobs                                               |
-|                 | Exec-managerial       | Executive and managerial roles                                   |
-|                 | Prof-specialty        | Professional occupations (e.g. scientist, lawyer)                |
-|                 | Handlers-cleaners     | Manual labor jobs involving cleaning, handling objects           |
-|                 | Machine-op-inspct     | Machine operators, inspectors                                    |
-|                 | Adm-clerical          | Administrative and clerical jobs                                 |
-|                 | Farming-fishing       | Agriculture, farming, fishing occupations                        |
-|                 | Transport-moving      | Transport and moving equipment operators                         |
-|                 | Priv-house-serv       | Private household service jobs                                   |
-|                 | Protective-serv       | Protective service jobs (e.g. security, law enforcement)         |
-|                 | Armed-Forces          | Military service                                                 |
-| **relationship**| Wife                  | Female spouse                                                    |
-|                 | Own-child             | Biological or adopted child                                      |
-|                 | Husband               | Male spouse                                                      |
-|                 | Not-in-family         | Not part of a family unit (e.g. living alone)                    |
-|                 | Other-relative        | Other relative in household                                      |
-|                 | Unmarried             | Single person, not married                                       |
-| **race**        | White                 | White                                                            |
-|                 | Asian-Pac-Islander    | Asian or Pacific Islander                                        |
-|                 | Amer-Indian-Eskimo    | American Indian or Eskimo                                        |
-|                 | Other                 | Other race not listed                                            |
-|                 | Black                 | Black                                                            |
-| **sex**         | Female                | Female                                                           |
-|                 | Male                  | Male                                                             |
-| **native-country** | Various (e.g. United-States, Cambodia, England, etc.) | Country of origin          |
-| **income**      | <=50K                 | Income less than or equal to USD 50,000                          |
-|                 | >50K                  | Income greater than USD 50,000                                   |
+| Variable        | Unique Value           | Description                                                                 |
+|----------------|------------------------|-----------------------------------------------------------------------------|
+| **workclass**   | Private                | Works for a private, for-profit company                                     |
+|                | Self-emp-not-inc       | Self-employed without incorporated business status                          |
+|                | Self-emp-inc           | Self-employed with an incorporated business                                 |
+|                | Federal-gov            | Employed by the federal government                                          |
+|                | State-gov              | Employed by a state government                                              |
+|                | Local-gov              | Employed by a local government                                              |
+|                | Without-pay            | Works without receiving pay (e.g. unpaid family worker)                     |
+|                | Never-worked           | Has never worked in their lifetime                                          |
+| **education**   | Bachelors              | Bachelor's degree                                                           |
+|                | Some-college           | Some college courses completed, no degree                                   |
+|                | 11th                   | 11th grade completed                                                        |
+|                | HS-grad                | High school graduate                                                        |
+|                | Prof-school            | Professional school (e.g. law, medicine)                                    |
+|                | Assoc-acdm             | Associate degree (academic)                                                 |
+|                | Assoc-voc              | Associate degree (vocational)                                               |
+|                | 9th                    | 9th grade completed                                                         |
+|                | 7th-8th                | 7th or 8th grade completed                                                  |
+|                | 12th                   | 12th grade, no diploma                                                      |
+|                | Masters                | Master's degree                                                             |
+|                | 1st-4th                | 1st to 4th grade completed                                                  |
+|                | 10th                   | 10th grade completed                                                        |
+|                | Doctorate              | Doctoral degree                                                             |
+|                | 5th-6th                | 5th or 6th grade completed                                                  |
+|                | Preschool              | Preschool education                                                         |
+| **marital-status** | Married-civ-spouse  | Married, living with spouse                                                 |
+|                | Divorced               | Divorced legally                                                            |
+|                | Never-married          | Never married                                                               |
+|                | Separated              | Separated legally but not divorced                                          |
+|                | Widowed                | Spouse deceased                                                             |
+|                | Married-spouse-absent  | Married, spouse not present (e.g. estrangement)                             |
+|                | Married-AF-spouse      | Married to a spouse in the Armed Forces                                     |
+| **occupation**  | Tech-support           | Technical support jobs                                                      |
+|                | Craft-repair           | Skilled manual trade and repair jobs                                        |
+|                | Other-service          | Services not classified elsewhere                                           |
+|                | Sales                  | Sales-related jobs                                                          |
+|                | Exec-managerial        | Executive and managerial roles                                              |
+|                | Prof-specialty         | Professional specialty occupations (e.g. scientist, lawyer)                |
+|                | Handlers-cleaners      | Manual labor jobs involving cleaning, handling objects                      |
+|                | Machine-op-inspct      | Machine operators, inspectors                                               |
+|                | Adm-clerical           | Administrative and clerical jobs                                            |
+|                | Farming-fishing        | Agriculture, farming, fishing occupations                                   |
+|                | Transport-moving       | Transport and moving equipment operators                                    |
+|                | Priv-house-serv        | Private household service jobs                                              |
+|                | Protective-serv        | Protective service jobs (e.g. security, law enforcement)                    |
+|                | Armed-Forces           | Military service                                                            |
+| **relationship**| Wife                   | Female spouse                                                               |
+|                | Own-child              | Biological or adopted child                                                 |
+|                | Husband                | Male spouse                                                                 |
+|                | Not-in-family          | Not part of a family unit (e.g. living alone)                               |
+|                | Other-relative         | Other relative in household                                                 |
+|                | Unmarried              | Single person, not married                                                  |
+| **race**        | White                  | White                                                                       |
+|                | Asian-Pac-Islander     | Asian or Pacific Islander                                                   |
+|                | Amer-Indian-Eskimo     | American Indian or Eskimo                                                   |
+|                | Other                  | Other race not listed                                                       |
+|                | Black                  | Black                                                                       |
+| **sex**         | Female                 | Female                                                                      |
+|                | Male                   | Male                                                                        |
+| **native-country** | United-States, Cambodia, England, Puerto-Rico, Canada, Germany, Outlying-US(Guam-USVI-etc), India, Japan, Greece, South, China, Cuba, Iran, Honduras, Philippines, Italy, Poland, Jamaica, Vietnam, Mexico, Portugal, Ireland, France, Dominican-Republic, Laos, Ecuador, Taiwan, Haiti, Columbia, Hungary, Guatemala, Nicaragua, Scotland, Thailand, Yugoslavia, El-Salvador, Trinidad-Tobago, Peru, Hong, Holland-Netherlands | Country of origin |
+| **income**      | <=50K                 | Income less than or equal to USD 50,000                                     |
+|                | >50K                  | Income greater than USD 50,000                                              |
 
+## 3. Deal with Missing values
 
-
-```{python}
-
-#| output: false
-np.unique(adult_df.income.to_list())
-```
+We inspect one more time to ensure we don't have any missing values.
 
 ```{python}
-
-#| output: false
-adult_df.columns
-```
-
-## Deal with missing values
-
-```{python}
-
-#| output: false
+#| label: check-missing-values
+#| echo: true
 adult_df.isnull().sum()
 ```
 
@@ -272,90 +254,82 @@ We address these by:
 - Imputing categorical missing values with `Unknown` for the columns `workclass` and `occupation`
 - Imputing categorical missing values with `Other` for the column `native_country`
 
-This has been done to preserve data consistency while acknowledging uncertainity.
+This has been done to preserve data consistency while acknowledging uncertainty.
 
 ```{python}
-
-#| output: false
+#| label: impute-missing
 adult_df['workclass'] = adult_df['workclass'].fillna('unknown')
-adult_df['native_country'] = adult_df['native_country'].fillna('other')
 adult_df['occupation'] = adult_df['occupation'].fillna('unknown')
+adult_df['native_country'] = adult_df['native_country'].fillna('other')
 ```
 
 ```{python}
-
-#| output: false
+#| label: confirm-no-missing
 adult_df.isnull().sum()
 ```
 
-## Removing Duplicates
+### 4. Removing Duplicates
 
-Duplicates can distort statistical summaries and model performance. Using `.duplicated().sum()`, we count duplicate records
-
-
+Duplicates can distort statistical summaries and model performance. Using `.duplicated().sum()`, we count duplicate records.
 
 ```{python}
-
-#| output: false
+#| label: view-duplicates
+#| scrolled: true
 adult_df.duplicated().sum()
 ```
 
 We then inspect the duplicated records.
 
 ```{python}
-
-#| output: false
-adult_df[adult_df.duplicated(keep = False)]
+#| scrolled: true
+adult_df[adult_df.duplicated(keep=False)]
 ```
 
 Finally, we remove them with `.drop_duplicates()`.
 
 ```{python}
-
-#| output: false
+#| scrolled: true
 adult_df = adult_df.drop_duplicates()
 ```
 
-We can confirm that we have no duplicates left in the dataset at this juncture.
+We can confirm that we have no duplicates left in the dataset at this juncture
 
 ```{python}
-
-#| output: false
+#| scrolled: true
 adult_df.duplicated().sum()
 ```
 
 We also inspect the current shape of the dataset and see that we have *32,537* rows and *15* columns.
 
 ```{python}
-
-#| output: false
+#| scrolled: true
 adult_df.shape
 ```
 
-## Standardize Categorical Variables
+### 5. Standardized Categorical Variables
 
 **Remove any leading or trailing spaces and convert the strings to lowercase**
 
 To prepare categorical variables for consistent processing, we first of all remove extra spaces and convert them to lowercase. This step ensures categorical variables are clean and consistently organized.
 
-
+```{python}
+#| label: detect-categorical
+adult_df.dtypes == object
+```
 
 ```{python}
-#| output: false
+#| label: list-categorical-cols
 adult_df.columns[(adult_df.dtypes == object)]
 ```
 
 ```{python}
-
-#| output: false
-categorical_cols = adult_df.columns[(adult_df.dtypes == object)]
+#| label: clean-categorical-text
+categorical_cols = adult_df.columns[adult_df.dtypes == object]
 for col in categorical_cols:
-    adult_df[col] = adult_df[col].str.strip().str.lower()
+    adult_df.loc[:,col] = adult_df[col].str.strip().str.lower()
 ```
 
 ```{python}
-
-#| output: false
 adult_df
 ```
 
@@ -375,29 +349,29 @@ We re-code the `workclass` column to broader categories like `government`, `priv
 |`never-worked`| `unemployed`|
 |`without-pay`| `voluntary`|
 
-
-
-
-
 ```{python}
-#| output: false
 adult_df['workclass'].unique()
 ```
 
 ```{python}
-adult_df['workclass'] = adult_df['workclass'].replace({
+#| label: workclass-map-before
+#| echo: false
+#| output: false
+adult_df.loc[:,"workclass"] = adult_df["workclass"].replace({
     'state-gov': 'government',
-    'loc-gov': 'government',
+    'local-gov': 'government',
     'federal-gov': 'government',
     'self-emp-not-inc': 'self-employed',
     'self-emp-inc': 'self-employed',
     'never-worked': 'unemployed',
-    'without-pay': 'voluntary'
+    'without-pay': 'voluntary',
 })
 ```
 
 ```{python}
-#| output: false
+#| label: education-map-before
+#| echo: true
+#| output: true
 adult_df['workclass'].unique()
 ```
 
@@ -427,42 +401,42 @@ We create a new colum `education_level` with broader education groups. The mappi
 |`1st-4th`         | `primary`           |
 |`preschool`       | `preschool`         |
 
-
 ```{python}
+#| echo: false
 #| output: false
 adult_df['education'].unique()
 ```
 
 ```{python}
+#| echo: false
 #| output: false
-adult_df['education_level'] = adult_df['education'].map({
-    'bachelors': 'tertiary',
-    'masters': 'tertiary',
-    'doctorate': 'tertiary',
-    'prof-school': 'tertiary',
-    'some-college': 'some-college',
-    'assoc-acdm': 'associate',
-    'assoc-voc': 'associate',
-    'hs-grad': 'secondary-school-graduate',
-    '12th': 'secondary',
-    '11th': 'secondary',
-    '10th': 'secondary',
-    '9th': 'secondary',
-    '7th-8th': 'primary',
-    '5th-6th': 'primary',
-    '1th-4th': 'primary',
-    'preschool': 'preschool'
-    
+adult_df.loc[:, "education_level"] = adult_df["education"].map({
+    "bachelors": "tertiary",
+    "masters": "tertiary",
+    "doctorate": "tertiary",
+    "prof-school": "tertiary",
+    "assoc-acdm": "associate",
+    "assoc-voc": "associate",
+    "hs-grad": "secondary-school graduate",
+    "12th": "secondary",
+    "11th": "secondary",
+    "10th": "secondary",
+    "9th": "secondary",
+    "7th-8th": "primary",
+    "5th-6th": "primary",
+    "1st-4th": "primary",
+    "preschool": "preschool",
+    "some-college": "some college"
 })
 ```
 
 ```{python}
+#| echo: false
 #| output: false
 adult_df.columns
 ```
 
 ```{python}
-#| output: false
 adult_df['education_level'].unique()
 ```
 
@@ -472,7 +446,7 @@ The categories in`marital_status` are simplified into `single`, `married`, `divo
 
 **Table 5:  Re-encoding of the `marital_status` column**
 
-| Old categories        | New categories     |
+| Old marital_status        | New marital_status     |
 |:-----------------|:--------------------|
 | `never-married`| `single`|
 | `married-civ-spouse`| `married`|
@@ -481,28 +455,27 @@ The categories in`marital_status` are simplified into `single`, `married`, `divo
 | `separated`| `divorced or separated`|
 | `married-af-spouse`| `married`|
 
-
-
-
 ```{python}
-#| output: false
+#| label: unique-marital-before
+#| echo: true
+#| output: true
 adult_df['marital_status'].unique()
 ```
 
 ```{python}
-#| output: false
-adult_df['marital_status'] = adult_df['marital_status'].replace({
+adult_df.loc[:, "marital_status"] = adult_df["marital_status"].replace({
     'never-married': 'single',
     'married-civ-spouse': 'married',
-    'married-spouse-absent': 'divorced or separated',
+    'married-spouse-absent': 'married or separated',
     'divorced': 'divorced or separated',
     'separated': 'divorced or separated',
     'married-af-spouse': 'married'
-    
 })
 ```
 
 ```{python}
+#| label: recode-marital-status
+#| echo: true
 #| output: false
 adult_df['marital_status'].unique()
 ```
@@ -531,13 +504,19 @@ ping is illustrated in Table 6.
 |`unknown`| `unknown`|
 
 ```{python}
-#| output: false
+#| label: unique-occupation-before
+#| echo: true
+#| output: true
 adult_df['occupation'].unique()
 ```
 
 ```{python}
+#| label: recode-occupation
+#| echo: true
 #| output: false
-adult_df['occupation_grouped'] = adult_df['occupation'].map({
+adult_df = adult_df.copy()
+
+adult_df.loc[:,'occupation_grouped'] = adult_df['occupation'].map({
     'adm-clerical': 'white collar',
     'exec-managerial': 'white collar',
     'handlers-cleaners': 'blue collar',
@@ -549,15 +528,17 @@ adult_df['occupation_grouped'] = adult_df['occupation'].map({
     'farming-fishing': 'blue collar',
     'machine-op-inspct': 'blue collar',
     'tech-support': 'white collar',
-    'protective-serv': 'Service',
-    'armed-forces': 'millitary',
+    'protective-serv': 'service',
+    'armed-forces': 'military',
     'priv-house-serv': 'service',
-    'unknown': 'unknown',
+    'unknown': 'unknown'
 })
 ```
 
 ```{python}
-#| output: false
+#| label: unique-occupation-after
+#| echo: false
+#| output: true
 adult_df['occupation_grouped'].unique()
 ```
 
@@ -579,27 +560,32 @@ Table 7 shows the re-encoding:
 |`husband`| `male spouse`|
 
 ```{python}
-#| output: false
+#| label: unique-relationship-before
+#| echo: true
+#| output: true
 adult_df['relationship'].unique()
 ```
 
 ```{python}
+#| label: recode-relationship
+#| echo: true
 #| output: false
-adult_df['relationship'] = adult_df['relationship'].replace({
-    'wife': 'female-spouse',
-    'own-Child': 'child',
-    'not-in-family':'single',
-    'other-relative': 'extended-relative',
-    'unmarried': 'single',
-    'husband': 'male-spouse'
+adult_df.loc[:,"relationship"] = adult_df["relationship"].replace({
+    "wife": "female spouse",
+    "own-child": "child",
+    "not-in-family": "single",
+    "other-relative": "extended relative",
+    "unmarried": "single",
+    "husband": "male spouse"
 })
 ```
 
 ```{python}
-#| output: false
+#| label: unique-relationship-after
+#| echo: false
+#| output: true
 adult_df['relationship'].unique()
 ```
-
 
 **Re-code the `race` column**
 
@@ -607,29 +593,29 @@ We standardize the `race` column to have more clear names. Table 8 shows the rec
 
 **Table 8:  Re-encoding of the `race` column**
 
-| Old categories        | New categories     |
+| Old race        | New race     |
 |:-----------------|:--------------------|
 |`asian-pac-islander`| `asian or pacific islander`|
 |`amer-indian-eskimo`| `american indian or eskimo`|
 
 ```{python}
-#| output: false
+#| label: unique-race-before
 adult_df['race'].unique()
 ```
 
 ```{python}
-adult_df['race'] = adult_df['race'].replace({
-    'white': 'white',
-    'asian-pac-islander': 'asian or pacific islander',
-    'amer-indian-eskimo': 'american indian or eskimo',
-    'black': 'black',
-    'other': 'other',
-
+#| label: recode-race
+adult_df.loc[:, "race"] = adult_df["race"].replace({
+    "white": "white",
+    "asian-pac-islander": "asian or pacific islander",
+    "amer-indian-eskimo": "american indian or eskimo",
+    "black": "black",
+    "other": "other"
 })
 ```
 
 ```{python}
-#| output: false
+#| label: unique-race-after
 adult_df['race'].unique()
 ```
 
@@ -640,7 +626,7 @@ We create a new colum `native_region` which maps `native_country` to geographica
 
 **Table 9: Mapping from `native_country` to `native_region`**
 
-| Education        | Education Level     |
+| Native_Country        | Native_Region     |
 |:-----------------|:--------------------|
 |`united-states`| `north america`|
 |`canada`| `north america`|
@@ -686,170 +672,144 @@ We create a new colum `native_region` which maps `native_country` to geographica
 |`other`| `other`|
 
 ```{python}
-#| output: false
 adult_df['native_country'].unique()
 ```
 
 ```{python}
-#| output: false
-adult_df['native_region'] = adult_df['native_country'].map({
+adult_df = adult_df.copy()
 
-   'united-states': 'north america',
-   'cambodia': 'asia',
-   'england': 'europe',
-   'puerto-rico': 'north america',
-   'canada': 'north america',
-   'germany': 'europe',
-   'outlying-us(guam-usvi-etc)': 'north america',
-   'india': 'asia',
-   'japan': 'asia',
-   'greece': 'europe',
-   'south': 'south america',
-   'china': 'asia',
-   'cuba': 'central america',
-   'iran': 'asia',
-   'honduras': 'central america',
-   'philippines': 'asia',
-   'italy': 'europe',
-   'poland': 'europe',
-   'jamaica': 'central america',
-   'vietnam': 'asia',
-   'mexico': 'north america',
-   'portugal': 'europe',
-   'ireland': 'europe',
-   'france': 'europe',
-   'dominican-republic': 'central america',
-   'laos': 'asia',
-   'ecuador': 'south america',
-   'taiwan': 'asia',
-   'haiti': 'central america',
-   'columbia': 'south america',
-   'hungary': 'europe',
-   'guatemala': 'central america',
-   'nicaragua': 'central america',
-   'scotland': 'europe',
-   'thailand': 'asia',
-   'yugoslavia': 'europe',
-   'el-salvador': 'central america',
-   'trinadad&tobago': 'central america',
-   'peru': 'south america',
-   'hong': 'asia',
-   'other': 'other',
-   'holand-netherlands': 'europe'
-
+adult_df.loc[:,"native_region"] = adult_df["native_country"].map({
+    "united-states": "north america",
+    "cambodia": "asia",
+    "england": "europe",
+    "puerto-rico": "north america",
+    "canada": "north america",
+    "germany": "europe",
+    "outlying-us(guam-usvi-etc)": "north america",
+    "india": "asia",
+    "japan": "asia",
+    "greece": "europe",
+    "south": "south america",
+    "china": "asia",
+    "cuba": "central america",
+    "iran": "asia",
+    "honduras": "central america",
+    "philippines": "asia",
+    "italy": "europe",
+    "poland": "europe",
+    "jamaica": "central america",
+    "vietnam": "asia",
+    "mexico": "north america",
+    "portugal": "europe",
+    "ireland": "europe",
+    "france": "europe",
+    "dominican-republic": "central america",
+    "laos": "asia",
+    "ecuador": "south america",
+    "taiwan": "asia",
+    "haiti": "central america",
+    "columbia": "south america",
+    "hungary": "europe",
+    "guatemala": "central america",
+    "nicaragua": "central america",
+    "scotland": "europe",
+    "thailand": "asia",
+    "yugoslavia": "europe",
+    "el-salvador": "central america",
+    "trinadad&tobago": "central america",
+    "peru": "south america",
+    "hong": "asia",
+    "other": "other",
+    "holand-netherlands": "europe"
 })
 ```
 
 ```{python}
-#| output: false
+#| label: unique-native-country-final
 adult_df['native_region'].unique()
 ```
 
-```{python}
-#| output: false
-adult_df.head(10)
-```
-
-**Create age groups based on the `age` column**
+### 6. Create age groups based on the `age` column
 
 Age is binned into groups such as `<18`, `18-25`, $\cdots$, `76+` to facilitate easier demographic analysis.
 
 ```{python}
-#| output: false
+#| label: final-region-mapping
 adult_df['age'].unique()
 ```
 
 ```{python}
-#| output: false
+#| label: create-age-group
 bins = [0, 18, 25, 35, 45, 60, 75, 100]
 labels = ['<18', '18-25', '26-35', '36-45', '46-60', '61-75', '76+']
-adult_df['age_group'] = pd.cut(adult_df['age'], bins = bins, labels = labels, right=True, include_lowest=True)
+adult_df.loc [: ,'age_group'] = pd.cut(adult_df['age'], bins = bins, labels = labels, right= True, include_lowest= True)
 ```
 
 ```{python}
-#| output: false
+#| label: unique-age-groups
 adult_df['age_group'].unique()
 ```
 
-## Drop unnecessary columns
+### 7. Drop unnecessary columns
 
-After recoding, some columns such as `education`, `native_country` and `occupation` become redundant. We drop them to avoid multicollinearity and simplify our dataset. We notably retain the `age` column in case there is need to model it as a continuous variable
-
-.
+After recoding, some columns such as `education`, `native_country` and `occupation` become redundant. We drop them to avoid multicollinearity and simplify our dataset. We notably retain the `age` column in case there is need to model it as a continuous variable.
 
 ```{python}
-#| output: false
-adult_df.drop(columns=['education', 'native_country', 'occupation'], inplace=True)
+adult_df.drop(columns =['education', 'native_country', 'occupation'], inplace=True)
 ```
 
 ```{python}
-#| output: false
 adult_df.columns
 ```
 
 ## Save the Clean Dataset
 
-Before saving the clean dataset, we re-inspect it to ensure no new issues have risen up due to re-encoding. We first of all inspect the shape of the dataset. We see that we have *32,537* rows and *16* columns. This means that there is a new column, `age_group`, added to the original dataset
-
+Before saving the clean dataset, we re-inspect it to ensure no new issues have risen up due to re-encoding. We first of all inspect the shape of the dataset. We see that we have *32,537* rows and *16* columns. This means that there is a new column, `age_group`, added to the original dataset.
 
 ```{python}
-#| output: false
+#| label: show-columns
 adult_df.shape
-```
-
-
-
-```{python}
-#| output: false
-adult_df.isnull().sum()
-```
-
-```{python}
-#| output: false
-adult_df['education_level'] = adult_df['education_level'].fillna('unknown')
 ```
 
 We confirm that there are no null values.
 
 ```{python}
-#| output: false
-adult_df.isnull().sum()
-```
-
-```{python}
-#| output: false
-adult_df.duplicated().sum()
-```
-
-```{python}
-#| output: false
-#| scrolled: true
-adult_df[adult_df.duplicated(keep=False)]
+#| label: check-missing
+adult_df.isna().sum()
 ```
 
 However, we note that there are new duplicated values given that we merged some categories in the re-encoding process. We inadvertently drop the duplicates.
 
 ```{python}
-#| output: false
+#| label: check-duplicates
+adult_df.duplicated().sum()
+```
+
+```{python}
+#| scrolled: true
+adult_df[adult_df.duplicated(keep=False)]
+```
+
+```{python}
+#| label: drop-duplicates
 adult_df = adult_df.drop_duplicates()
 ```
 
 ```{python}
-#| output: false
+#| label: confirm-no-duplicates
 adult_df.duplicated().sum()
 ```
 
 The final shape of the clean dataset is thus *32,513* rows and *16* columns.
 
 ```{python}
-#| output: false
+#| label: final-shape-confirmed
 adult_df.shape
 ```
 
 Finally, we save the clean, processed dataset as a CSV file in our `processed` directory for future modelling and analysis.
 
 ```{python}
-#| output: false
 final_file = os.path.join(processed_dir, 'adult_cleaned.csv') 
 adult_df.to_csv(final_file, index=False)
 ```
